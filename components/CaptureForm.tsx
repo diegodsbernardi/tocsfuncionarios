@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { compressImage } from "@/lib/compressImage";
 
 type Extracted = {
   credito: number;
@@ -36,11 +37,18 @@ export function CaptureForm() {
   }
 
   async function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
-    if (!f) return;
+    const raw = e.target.files?.[0];
+    if (!raw) return;
+    setError(null);
+    // Comprime a foto antes de upar — reduz tamanho e acelera a IA
+    let f: File;
+    try {
+      f = await compressImage(raw);
+    } catch {
+      f = raw;
+    }
     setFile(f);
     setPreviewUrl(URL.createObjectURL(f));
-    setError(null);
     await extract(f);
   }
 

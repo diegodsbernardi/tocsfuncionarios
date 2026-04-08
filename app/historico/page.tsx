@@ -1,0 +1,131 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { DeleteReportButton } from "@/components/DeleteReportButton";
+
+export const dynamic = "force-dynamic";
+
+type Report = {
+  id: string;
+  credito: number;
+  debito: number;
+  pix: number;
+  total: number;
+  created_at: string;
+};
+
+function brl(n: number) {
+  return Number(n).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
+function startOfDayISO() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
+}
+
+export default async function HistoricoPage() {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: reports } = await supabase
+    .from("reports")
+    .select("id, credito, debito, pix, total, created_at")
+    .eq("user_id", user.id)
+    .gte("created_at", startOfDayISO())
+    .order("created_at", { ascending: false });
+
+  const list = (reports || []) as Report[];
+
+  const totals = list.reduce(
+    (acc, r) => {
+      acc.credito += Number(r.credito);
+      acc.debito += Number(r.debito);
+      acc.pix += Number(r.pix);
+      acc.total += Number(r.total);
+      return acc;
+    },
+    { credito: 0, debito: 0, pix: 0, total: 0 },
+  );
+
+  return (
+    <main className="mx-auto max-w-md px-4 py-6">
+      <header className="mb-6 flex items-center justify-between">
+        <h1 className="text-xl font-bold text-slate-900">Relatórios</h1>
+        <Link
+          href="/"
+          className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+        >
+          Voltar
+        </Link>
+      </header>
+
+      <section className="mb-6 space-y-2 rounded-2xl bg-white p-5 shadow">
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
+          Totais do dia
+        </h2>
+        <Row label="Crédito" value={totals.credito} />
+        <Row label="Débito" value={totals.debito} />
+        <Row label="Pix" value={totals.pix} />
+        <div className="flex items-center justify-between border-t border-slate-200 pt-3">
+          <span className="font-semibold text-slate-700">Total</span>
+          <span className="text-xl font-bold text-brand-dark">
+            {brl(totals.total)}
+          </span>
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+          Cupons de hoje ({list.length})
+        </h2>
+        {list.length === 0 && (
+          <p className="rounded-2xl bg-white p-6 text-center text-sm text-slate-500 shadow">
+            Nenhum relatório enviado hoje ainda.
+          </p>
+        )}
+        {list.map((r) => (
+          <article
+            key={r.id}
+            className="rounded-2xl bg-white p-4 shadow"
+          >
+            <div className="mb-2 flex items-start justify-between gap-3">
+              <div className="flex flex-col">
+                <span className="text-xs text-slate-500">
+                  {new Date(r.created_at).toLocaleTimeString("pt-BR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+                <span className="text-base font-bold tabular-nums text-brand-dark">
+                  {brl(Number(r.total))}
+                </span>
+              </div>
+              <DeleteReportButton id={r.id} />
+            </div>
+            <div className="flex justify-between text-sm tabular-nums text-slate-600">
+              <span>Crédito {brl(Number(r.credito))}</span>
+              <span>Débito {brl(Number(r.debito))}</span>
+              <span>Pix {brl(Number(r.pix))}</span>
+            </div>
+          </article>
+        ))}
+      </section>
+    </main>
+  );
+}
+
+function Row({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="flex items-center justify-between text-slate-700">
+      <span>{label}</span>
+      <span className="font-medium">{brl(value)}</span>
+    </div>
+  );
+}

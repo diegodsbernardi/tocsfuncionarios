@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -85,6 +86,15 @@ export default function LoginPage() {
         >
           {loading ? "Entrando..." : "Entrar"}
         </button>
+
+        <div className="text-center">
+          <Link
+            href="/status"
+            className="text-xs text-slate-500 hover:text-slate-700 hover:underline"
+          >
+            Ver status do sistema
+          </Link>
+        </div>
       </form>
     </main>
   );

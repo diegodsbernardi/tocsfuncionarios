@@ -181,12 +181,18 @@ export function CaptureForm() {
             </span>
           </button>
           {error && (
-            <p
+            <div
               role="alert"
-              className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600"
+              className="space-y-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600"
             >
-              {error}
-            </p>
+              <p className="break-words">{error}</p>
+              <Link
+                href="/status"
+                className="inline-block text-xs font-medium text-red-700 underline hover:text-red-900"
+              >
+                Ver status do sistema →
+              </Link>
+            </div>
           )}
         </div>
       )}

@@ -9,7 +9,6 @@ type Props = {
     id: string;
     name: string;
     phone: string | null;
-    pix_key: string | null;
     default_category: "cozinha" | "atendimento" | null;
     active: boolean;
     notes: string | null;
@@ -21,7 +20,6 @@ export function PersonForm({ initial, onDone }: Props) {
   const router = useRouter();
   const [name, setName] = useState(initial?.name ?? "");
   const [phone, setPhone] = useState(initial?.phone ?? "");
-  const [pix, setPix] = useState(initial?.pix_key ?? "");
   const [category, setCategory] = useState<"cozinha" | "atendimento" | "">(
     initial?.default_category ?? "",
   );
@@ -38,7 +36,6 @@ export function PersonForm({ initial, onDone }: Props) {
         id: initial?.id,
         name,
         phone: phone || null,
-        pix_key: pix || null,
         default_category: (category || null) as
           | "cozinha"
           | "atendimento"
@@ -52,7 +49,6 @@ export function PersonForm({ initial, onDone }: Props) {
         if (!initial) {
           setName("");
           setPhone("");
-          setPix("");
           setCategory("");
           setActive(true);
           setNotes("");
@@ -79,26 +75,16 @@ export function PersonForm({ initial, onDone }: Props) {
         />
       </Field>
 
-      <div className="grid grid-cols-2 gap-2">
-        <Field label="Telefone">
-          <input
-            type="tel"
-            inputMode="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="(00) 00000-0000"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-brand"
-          />
-        </Field>
-        <Field label="Chave PIX">
-          <input
-            type="text"
-            value={pix}
-            onChange={(e) => setPix(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-brand"
-          />
-        </Field>
-      </div>
+      <Field label="Telefone">
+        <input
+          type="tel"
+          inputMode="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="(00) 00000-0000"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-brand"
+        />
+      </Field>
 
       <Field label="Setor padrão">
         <select

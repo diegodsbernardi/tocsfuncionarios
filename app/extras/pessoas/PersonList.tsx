@@ -2,15 +2,19 @@
 
 import { useState } from "react";
 import { PersonForm } from "./PersonForm";
+import { formatDateTime } from "@/lib/format";
 
 type Person = {
   id: string;
   name: string;
   phone: string | null;
-  pix_key: string | null;
   default_category: "cozinha" | "atendimento" | null;
   active: boolean;
   notes: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  created_by_name: string | null;
+  updated_by_name: string | null;
 };
 
 export function PersonList({ people }: { people: Person[] }) {
@@ -36,7 +40,14 @@ export function PersonList({ people }: { people: Person[] }) {
         >
           {editingId === p.id ? (
             <PersonForm
-              initial={p}
+              initial={{
+                id: p.id,
+                name: p.name,
+                phone: p.phone,
+                default_category: p.default_category,
+                active: p.active,
+                notes: p.notes,
+              }}
               onDone={() => setEditingId(null)}
             />
           ) : (
@@ -54,14 +65,25 @@ export function PersonList({ people }: { people: Person[] }) {
                   {p.default_category ?? "setor —"}
                   {p.phone && ` • ${p.phone}`}
                 </p>
-                {p.pix_key && (
-                  <p className="truncate text-xs text-slate-400">
-                    PIX: {p.pix_key}
-                  </p>
-                )}
                 {p.notes && (
                   <p className="text-xs text-slate-400">{p.notes}</p>
                 )}
+                <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-400">
+                  {p.created_by_name
+                    ? `cadastrado por ${p.created_by_name}`
+                    : "cadastrado"}
+                  {p.created_at && ` • ${formatDateTime(p.created_at)}`}
+                  {p.updated_at &&
+                    p.updated_at !== p.created_at && (
+                      <>
+                        {" • editado"}
+                        {p.updated_by_name &&
+                          p.updated_by_name !== p.created_by_name &&
+                          ` por ${p.updated_by_name}`}
+                        {` em ${formatDateTime(p.updated_at)}`}
+                      </>
+                    )}
+                </p>
               </div>
               <button
                 onClick={() => setEditingId(p.id)}

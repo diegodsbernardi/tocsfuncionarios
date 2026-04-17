@@ -20,13 +20,12 @@ export async function upsertPerson(input: {
   id?: string;
   name: string;
   phone: string | null;
-  pix_key: string | null;
   default_category: "cozinha" | "atendimento" | null;
   active: boolean;
   notes: string | null;
 }): Promise<Result<{ id: string }>> {
   try {
-    const { supabase } = await requireUser();
+    const { supabase, user } = await requireUser();
     if (!input.name.trim()) return { ok: false, error: "Nome obrigatório." };
 
     if (input.id) {
@@ -35,11 +34,9 @@ export async function upsertPerson(input: {
         .update({
           name: input.name.trim(),
           phone: input.phone?.trim() || null,
-          pix_key: input.pix_key?.trim() || null,
           default_category: input.default_category,
           active: input.active,
           notes: input.notes?.trim() || null,
-          updated_at: new Date().toISOString(),
         })
         .eq("id", input.id);
       if (error) return { ok: false, error: error.message };
@@ -53,10 +50,11 @@ export async function upsertPerson(input: {
       .insert({
         name: input.name.trim(),
         phone: input.phone?.trim() || null,
-        pix_key: input.pix_key?.trim() || null,
         default_category: input.default_category,
         active: input.active,
         notes: input.notes?.trim() || null,
+        created_by: user.id,
+        updated_by: user.id,
       })
       .select("id")
       .single();
